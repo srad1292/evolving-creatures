@@ -9,8 +9,17 @@ class Creature:
         self.actions = allowed_actions or [1]*len(self.all_actions)
         self.all_sensors = ["N","S","E","W","NE","NW","SE","SW","DIST_WALLS"]
         self.sensors = allowed_sensors or [1]*len(self.all_sensors)
-        self.brain = brain or Brain() # neural net or rule set
+        self.brain = brain or Brain(self._input_size(), len(self.all_actions)) # neural net or rule set
         self.fitness = 0
+
+    def _input_size(self):
+        size = 0
+        for s in self.all_sensors:
+            if s == "DIST_WALLS":
+                size += 4
+            else:
+                size += 1
+        return size
 
     def sense(self, grid):
         inputs = []

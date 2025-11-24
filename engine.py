@@ -1,6 +1,8 @@
 from creature import Creature
 import pygame
 import random
+import numpy as np
+import random
 
 
 # --- Grid setup ---
@@ -11,6 +13,7 @@ WINDOW_WIDTH = CELL_SIZE * GRID_WIDTH
 WINDOW_HEIGHT = CELL_SIZE * GRID_HEIGHT
 BG_COLOR_LIGHT = (224, 223, 206)
 grid = [[None for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
+
 
 # --- Creature setup ---
 NUM_CREATURES = 1000
@@ -33,12 +36,51 @@ pygame.display.set_caption("Neuroevolution Demo Grid")
 clock = pygame.time.Clock()
 
 # --- Simulation setup ---
-STEPS_PER_GENERATION = 30
-NUM_GENERATIONS = 20
+STEPS_PER_GENERATION = 200
+NUM_GENERATIONS = 30
 
 current_step = 0
 current_generation = 0
 
+
+def evolve_population(creatures, num_creatures):
+    # Sort by fitness (higher is better)
+    creatures.sort(key=lambda c: c.fitness, reverse=True)
+
+    # Select top 50% as parents
+    num_parents = len(creatures) // 2
+    parents = creatures[:num_parents]
+
+    # Create new generation
+    new_generation = []
+
+    while len(new_generation) < num_creatures:
+        parent = random.choice(parents)
+        child = Creature(parent.x, parent.y)  # new creature at random spot later
+        # Copy brain weights
+        child.brain.weights = np.copy(parent.brain.weights)
+        # Mutate slightly
+        mutation = np.random.uniform(-0.05, 0.05, child.brain.weights.shape)
+        child.brain.weights += mutation
+        new_generation.append(child)
+
+    return new_generation
+
+def setup_generation_grid(creatures):
+    grid = [[None for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
+    occupied = set()
+    for c in creatures:
+        while True:
+            x = random.randint(0, GRID_WIDTH - 1)
+            y = random.randint(0, GRID_HEIGHT - 1)
+            if (x, y) not in occupied:
+                c.x, c.y = x, y
+                grid[y][x] = c
+                occupied.add((x, y))
+                break
+    return grid
+
+# --- Engine loop ---
 running = True
 while running:
     for event in pygame.event.get():
@@ -52,8 +94,8 @@ while running:
         current_x, current_y = c.x, c.y
         action = c.decide(c.sense(grid))
         p_x, p_y = c.propose_move(action)
-        if current_generation < 1 and creature_index < 2:
-            print(f"Phase 1 Creature {creature_index} wants to move to {p_x}, {p_y}")
+        # if current_generation < 10 and creature_index == 0:
+        #     print(f"Phase 1 -- Generation {current_generation} Step {current_step} -- Creature {creature_index} wants to move to {p_x}, {p_y}")
         new_x = max(0, min(GRID_WIDTH-1, p_x))
         new_y = max(0, min(GRID_HEIGHT-1, p_y))
         moves.append((c, current_x, current_y, new_x, new_y))
@@ -63,15 +105,17 @@ while running:
     creature_index = 0
     for c, old_x, old_y, new_x, new_y in moves:
         grid[old_y][old_x] = None
-        if current_generation < 1 and creature_index < 2:
-            print(f"Phase 2 Creature {creature_index} wants to move to {new_x}, {new_y}")
-            print(f"Phase 2 Grid {new_x}, {new_y} is free if {grid[new_y][new_x] == None}")
+        # if current_generation < 1 and creature_index < 2:
+        #     print(f"Phase 2 Creature {creature_index} wants to move to {new_x}, {new_y}")
+        #     print(f"Phase 2 Grid {new_x}, {new_y} is free if {grid[new_y][new_x] == None}")
         if grid[new_y][new_x] is None:  # only move if free
             c.x, c.y = new_x, new_y
             grid[new_y][new_x] = c
         else:
             # collision handling: stay put
             grid[old_y][old_x] = c
+        if c.x >= GRID_WIDTH // 2:
+            c.fitness += 1
         creature_index += 1
 
 
@@ -90,6 +134,9 @@ while running:
         print(f"Generation {current_generation} finished")
         if(current_generation >= NUM_GENERATIONS):
             running = False;
+        else:
+            creatures = evolve_population(creatures, NUM_CREATURES)
+            grid = setup_generation_grid(creatures)
 
     clock.tick(30)  # 30 FPS
 
