@@ -3,26 +3,18 @@ import pygame
 import random
 import numpy as np
 import random
-
+import config
 
 # --- Grid setup ---
-CELL_SIZE = 6
-GRID_WIDTH = 128
-GRID_HEIGHT = 128
-WINDOW_WIDTH = CELL_SIZE * GRID_WIDTH
-WINDOW_HEIGHT = CELL_SIZE * GRID_HEIGHT
-BG_COLOR_LIGHT = (224, 223, 206)
-grid = [[None for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
-
+grid = [[None for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
 
 # --- Creature setup ---
-NUM_CREATURES = 1000
 occupied = set()
 creatures = []
 
-while len(creatures) < NUM_CREATURES:
-    x = random.randint(0, GRID_WIDTH - 1)
-    y = random.randint(0, GRID_HEIGHT - 1)
+while len(creatures) < config.NUM_CREATURES:
+    x = random.randint(0, config.GRID_WIDTH - 1)
+    y = random.randint(0, config.GRID_HEIGHT - 1)
     if (x, y) not in occupied:
         c = Creature(x, y)
         creatures.append(c)
@@ -31,14 +23,11 @@ while len(creatures) < NUM_CREATURES:
 
 # --- Pygame setup ---
 pygame.init()
-screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+screen = pygame.display.set_mode((config.WINDOW_WIDTH, config.WINDOW_HEIGHT))
 pygame.display.set_caption("Neuroevolution Demo Grid")
 clock = pygame.time.Clock()
 
 # --- Simulation setup ---
-STEPS_PER_GENERATION = 200
-NUM_GENERATIONS = 30
-
 current_step = 0
 current_generation = 0
 
@@ -67,12 +56,12 @@ def evolve_population(creatures, num_creatures):
     return new_generation
 
 def setup_generation_grid(creatures):
-    grid = [[None for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
+    grid = [[None for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
     occupied = set()
     for c in creatures:
         while True:
-            x = random.randint(0, GRID_WIDTH - 1)
-            y = random.randint(0, GRID_HEIGHT - 1)
+            x = random.randint(0, config.GRID_WIDTH - 1)
+            y = random.randint(0, config.GRID_HEIGHT - 1)
             if (x, y) not in occupied:
                 c.x, c.y = x, y
                 grid[y][x] = c
@@ -96,8 +85,8 @@ while running:
         p_x, p_y = c.propose_move(action)
         # if current_generation < 10 and creature_index == 0:
         #     print(f"Phase 1 -- Generation {current_generation} Step {current_step} -- Creature {creature_index} wants to move to {p_x}, {p_y}")
-        new_x = max(0, min(GRID_WIDTH-1, p_x))
-        new_y = max(0, min(GRID_HEIGHT-1, p_y))
+        new_x = max(0, min(config.GRID_WIDTH-1, p_x))
+        new_y = max(0, min(config.GRID_HEIGHT-1, p_y))
         moves.append((c, current_x, current_y, new_x, new_y))
         creature_index += 1
 
@@ -114,28 +103,29 @@ while running:
         else:
             # collision handling: stay put
             grid[old_y][old_x] = c
-        if c.x >= GRID_WIDTH // 2:
+        if c.x >= config.GRID_WIDTH // 2:
             c.fitness += 1
         creature_index += 1
 
 
     # --- Draw ---
-    screen.fill(BG_COLOR_LIGHT)  # black background
+    screen.fill(config.BG_COLOR_LIGHT)  # black background
     for c in creatures:
-        rect = pygame.Rect(c.x*CELL_SIZE, c.y*CELL_SIZE, CELL_SIZE, CELL_SIZE)
-        pygame.draw.rect(screen, (30, 89, 10), rect)  # green creatures
+        rect = pygame.Rect(c.x*config.CELL_SIZE, c.y*config.CELL_SIZE, config.CELL_SIZE, config.CELL_SIZE)
+        pygame.draw.rect(screen, c.get_color(), rect)  # green creatures
 
+    pygame.display.set_caption(f"Neuroevolution Basic -- Generation {current_generation}")
     pygame.display.flip()
 
     current_step += 1
-    if current_step >= STEPS_PER_GENERATION:
+    if current_step >= config.STEPS_PER_GENERATION:
         current_generation += 1
         current_step = 0
         print(f"Generation {current_generation} finished")
-        if(current_generation >= NUM_GENERATIONS):
+        if(current_generation >= config.NUM_GENERATIONS):
             running = False;
         else:
-            creatures = evolve_population(creatures, NUM_CREATURES)
+            creatures = evolve_population(creatures, config.NUM_CREATURES)
             grid = setup_generation_grid(creatures)
 
     clock.tick(30)  # 30 FPS

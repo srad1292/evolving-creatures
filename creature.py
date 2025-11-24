@@ -1,4 +1,6 @@
+import numpy as np
 from brain import Brain
+from config import ACTION_COLORS
 
 
 class Creature:
@@ -91,3 +93,10 @@ class Creature:
         }
         return mapping.get(action, (0,0))
 
+    def get_color(self):
+        # Average weights per action (collapse inputs dimension)
+        action_strengths = np.mean(self.brain.weights, axis=0)
+        dominant_index = int(np.argmax(action_strengths))
+        dominant_action = self.all_actions[dominant_index]
+        return ACTION_COLORS[dominant_action]
+ 
