@@ -37,22 +37,19 @@ metrics.end_of_generation_metrics(current_generation, creatures, config.NUM_CREA
 
 
 def evolve_population(creatures, num_creatures):
-    # Sort by fitness (higher is better)
-    creatures.sort(key=lambda c: c.fitness, reverse=True)
+    # Select only creatures that ended up in the right half
+    parents = [c for c in creatures if c.x >= config.GRID_WIDTH // 2]
 
-    # Select top 50% as parents
-    num_parents = len(creatures) // 2
-    parents = creatures[:num_parents]
+    # Safety check: if no parents survived, fall back to all creatures
+    if not parents:
+        parents = creatures
 
-    # Create new generation
     new_generation = []
 
     while len(new_generation) < num_creatures:
         parent = random.choice(parents)
         child = Creature(parent.x, parent.y)  # new creature at random spot later
-        # Copy brain weights
         child.brain.weights = np.copy(parent.brain.weights)
-        # Mutate slightly
         mutation = np.random.uniform(-0.05, 0.05, child.brain.weights.shape)
         child.brain.weights += mutation
         new_generation.append(child)
