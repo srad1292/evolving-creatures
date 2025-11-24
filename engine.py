@@ -4,6 +4,7 @@ import random
 import numpy as np
 import random
 import config
+from metrics import Metrics
 
 # --- Grid setup ---
 grid = [[None for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
@@ -30,6 +31,9 @@ clock = pygame.time.Clock()
 # --- Simulation setup ---
 current_step = 0
 current_generation = 0
+metrics = Metrics()
+metrics.end_of_generation_metrics(current_generation, creatures, config.NUM_CREATURES // 2, config.POSSIBLE_ACTIONS)
+
 
 
 def evolve_population(creatures, num_creatures):
@@ -120,9 +124,11 @@ while running:
     current_step += 1
     if current_step >= config.STEPS_PER_GENERATION:
         current_generation += 1
+        metrics.end_of_generation_metrics(current_generation, creatures, config.NUM_CREATURES // 2, config.POSSIBLE_ACTIONS)
         current_step = 0
         print(f"Generation {current_generation} finished")
         if(current_generation >= config.NUM_GENERATIONS):
+            metrics.save_metrics()
             running = False;
         else:
             creatures = evolve_population(creatures, config.NUM_CREATURES)

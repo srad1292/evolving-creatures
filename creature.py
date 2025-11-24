@@ -1,22 +1,20 @@
 import numpy as np
 from brain import Brain
-from config import ACTION_COLORS
+import config
 
 
 class Creature:
     def __init__(self, x, y, allowed_actions=None, allowed_sensors=None, brain=None):
         self.x = x
         self.y = y
-        self.all_actions = ["N","S","E","W","NE","NW","SE","SW","STAY"]
-        self.actions = allowed_actions or [1]*len(self.all_actions)
-        self.all_sensors = ["N","S","E","W","NE","NW","SE","SW","DIST_WALLS"]
-        self.sensors = allowed_sensors or [1]*len(self.all_sensors)
-        self.brain = brain or Brain(self._input_size(), len(self.all_actions)) # neural net or rule set
+        self.actions = allowed_actions or [1]*len(config.POSSIBLE_ACTIONS)
+        self.sensors = allowed_sensors or [1]*len(config.POSSIBLE_SENSORS)
+        self.brain = brain or Brain(self._input_size(), len(config.POSSIBLE_ACTIONS)) # neural net or rule set
         self.fitness = 0
 
     def _input_size(self):
         size = 0
-        for s in self.all_sensors:
+        for s in config.POSSIBLE_SENSORS:
             if s == "DIST_WALLS":
                 size += 4
             else:
@@ -25,7 +23,7 @@ class Creature:
 
     def sense(self, grid):
         inputs = []
-        for i, s in enumerate(self.all_sensors):
+        for i, s in enumerate(config.POSSIBLE_SENSORS):
             if not self.sensors[i]:
                 # Sensor disabled → feed a neutral value (e.g. 0)
                 if s == "DIST_WALLS":
@@ -71,8 +69,8 @@ class Creature:
 
 
     def decide(self, inputs):
-        action_index = self.brain.predict(inputs, self.all_actions)
-        return self.all_actions[action_index]
+        action_index = self.brain.predict(inputs, config.POSSIBLE_ACTIONS)
+        return config.POSSIBLE_ACTIONS[action_index]
 
     def propose_move(self, action):
         dx, dy = self._action_to_delta(action)
@@ -97,6 +95,6 @@ class Creature:
         # Average weights per action (collapse inputs dimension)
         action_strengths = np.mean(self.brain.weights, axis=0)
         dominant_index = int(np.argmax(action_strengths))
-        dominant_action = self.all_actions[dominant_index]
-        return ACTION_COLORS[dominant_action]
+        dominant_action = config.POSSIBLE_ACTIONS[dominant_index]
+        return config.ACTION_COLORS[dominant_action]
  
