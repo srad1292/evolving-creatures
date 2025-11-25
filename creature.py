@@ -7,6 +7,7 @@ class Creature:
     def __init__(self, x, y, allowed_actions=None, allowed_sensors=None, brain=None):
         self.x = x
         self.y = y
+        self.alive = True
         self.actions = allowed_actions or [1]*len(config.POSSIBLE_ACTIONS)
         self.sensors = allowed_sensors or [1]*len(config.POSSIBLE_SENSORS)
         self.brain = brain or Brain(self._input_size(), len(config.POSSIBLE_ACTIONS)) # neural net or rule set
@@ -20,6 +21,13 @@ class Creature:
             else:
                 size += 1
         return size
+    
+    def get_killed(self, grid):
+        grid[self.y][self.x] = None
+        self.alive = False
+        self.x = -1
+        self.y = -1
+        
 
     def sense(self, grid):
         inputs = []
@@ -93,8 +101,28 @@ class Creature:
 
     def get_color(self):
         # Average weights per action (collapse inputs dimension)
-        action_strengths = np.mean(self.brain.weights, axis=0)
-        dominant_index = int(np.argmax(action_strengths))
-        dominant_action = config.POSSIBLE_ACTIONS[dominant_index]
-        return config.ACTION_COLORS[dominant_action]
+        # action_strengths = np.mean(self.brain.weights, axis=0)
+        # dominant_index = int(np.argmax(action_strengths))
+        # dominant_action = config.POSSIBLE_ACTIONS[dominant_index]
+        # return config.ACTION_COLORS[dominant_action]
+        return config.SINGLE_CREATURE_COLOR
+    
+    def is_isolated(self, grid):
+        # Offsets for the 8 surrounding cells
+        directions = [
+            (-1, -1), (-1, 0), (-1, 1),
+            (0, -1),          (0, 1),
+            (1, -1),  (1, 0), (1, 1)
+        ]
+        
+        for dx, dy in directions:
+            nx, ny = self.x + dx, self.y + dy
+            # Bounds check if grid is a 2D array
+            if 0 <= nx < len(grid) and 0 <= ny < len(grid[0]):
+                neighbor = grid[nx][ny]
+                if isinstance(neighbor, Creature):
+                    # Found a non-wolf neighbor → not isolated
+                    return False
+        return True
+
  

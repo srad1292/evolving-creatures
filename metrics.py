@@ -15,9 +15,9 @@ class Metrics:
             writer.writeheader()
             writer.writerows(self.metrics_log)
 
-    def end_of_generation_metrics(self, current_generation, creatures, num_reproducers, actions):
+    def end_of_generation_metrics(self, current_generation, creatures, actions):
         metrics_for_generation = {}
-        metrics_for_generation["num_reproducers"] = int(num_reproducers)
+        metrics_for_generation["num_reproducers"] = self.count_reproducers(creatures)
         metrics_for_generation["right_half"] = self.count_right_half(creatures)
         metrics_for_generation["diversity_radius"] = self.compute_diversity_radius(creatures)
         metrics_for_generation["behavioral_entropy"] = self.compute_behavioral_entropy(creatures, actions)
@@ -48,6 +48,13 @@ class Metrics:
         eps = 1e-12
         H = -sum(p * math.log(p + eps) for p in probs)               # ≥ 0
         return H
+    
+    def count_reproducers(self, creatures):
+        count = 0
+        for c in creatures:
+            if c.alive:
+                count += 1
+        return count
     
     def count_right_half(self, creatures):
         count = 0

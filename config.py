@@ -7,10 +7,15 @@ GRID_HEIGHT = 128
 WINDOW_WIDTH = CELL_SIZE * GRID_WIDTH
 WINDOW_HEIGHT = CELL_SIZE * GRID_HEIGHT
 
+# Debug Properties
+PRINT_INFO = False
+STEP_BY_STEP = False
+
 # Simulation Properties
 NUM_CREATURES = 1000
+NUM_PREDATORS = 10
 STEPS_PER_GENERATION = 200
-NUM_GENERATIONS = 50
+NUM_GENERATIONS = 30
 
 # Network options
 POSSIBLE_ACTIONS = ["N","S","E","W","NE","NW","SE","SW","STAY"]
@@ -18,6 +23,8 @@ POSSIBLE_SENSORS = ["N","S","E","W","NE","NW","SE","SW","DIST_WALLS"]
 
 # Basic Colors
 BG_COLOR_LIGHT = (224, 223, 206)
+SINGLE_CREATURE_COLOR = (19, 137, 179)
+WOLF_COLOR = (255, 0, 0)
 
 # Creature Colors
 # Green for east
