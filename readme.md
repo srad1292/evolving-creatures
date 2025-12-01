@@ -1,3 +1,5 @@
+Built using Python 3.11.6
+
 Open Command Line in base directory of this project
 
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
